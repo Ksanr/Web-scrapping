@@ -3,3 +3,4 @@ habr_sel.py
 lection.py
 .venv/
 .idea/
+__pycache__/
