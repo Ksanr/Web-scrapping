@@ -7,14 +7,15 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 
 ## Определяем список ключевых слов:
 KEYWORDS = ['дизайн', 'фото', 'web', 'python']
+PATH = ChromeDriverManager().install()
 
 def wait_element(driver_or_tag, delay_seconds=1, by=By.TAG_NAME, value=None):
     return WebDriverWait(driver_or_tag, delay_seconds).until(
         presence_of_element_located((by, value))
     )
 def get_articles(sait = 'https://habr.com/ru/articles', keywords=KEYWORDS):
-    path = ChromeDriverManager().install()
-    service = Service(executable_path=path)
+
+    service = Service(executable_path=PATH)
     driver = Chrome(service=service)
     driver.get(sait)
 
@@ -45,16 +46,19 @@ def get_articles(sait = 'https://habr.com/ru/articles', keywords=KEYWORDS):
     articles = []
 
     for article_dict in articles_all:
-        driver.get(article_dict['absolute_article_link'])
-        article_tag = wait_element(driver, 1, By.ID, 'post-content-body')
-        article_text = article_tag.text.strip()
+        try:
+            driver.get(article_dict['absolute_article_link'])
+            article_tag = wait_element(driver, 1, By.ID, 'post-content-body')
+            article_text = article_tag.text.strip()
 
-        for keyword in keywords:
-            if keyword in article_dict['article_title'] or keyword in article_text:
-                text = f"{article_dict['publication_date']} - {article_dict['article_title']} - {article_dict['absolute_article_link']}"
-                articles.append(text)
-                break
-
+            for keyword in keywords:
+                if keyword in article_dict['article_title'].lower() or keyword in article_text.lower():
+                    text = f"{article_dict['publication_date']} - {article_dict['article_title']} - {article_dict['absolute_article_link']}"
+                    articles.append(text)
+                    break
+        except Exception as e:
+            print(f'Ошибка при вызове статьи: {e}')
+    driver.quit()
     return articles
 
 if __name__ == '__main__':
